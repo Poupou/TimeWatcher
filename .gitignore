@@ -10,3 +10,19 @@
 *.lai
 *.la
 *.a
+
+# tmp files
+.*.sw[a-z]
+*~
+
+aclocal.m4
+autom4te.cache
+bootstrap.sh
+config.h.in
+configure
+depcomp
+install-sh
+Makefile.in
+missing
+_build
+
