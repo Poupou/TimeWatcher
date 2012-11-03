@@ -16,12 +16,16 @@ AM_CXXFLAGS="$AM_CXXFLAGS -O3 -W -Wall -Wextra -std=c++11"
 
 AC_PROG_CXX(g++)
 
+# OpenCV
+PKG_CHECK_MODULES(OPENCV, opencv >= 2.2)
+AC_SUBST(OPENCV_CFLAGS)
+AC_SUBST(OPENCV_LIBS)
+
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_CPPFLAGS])
 
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AC_CONFIG_HEADER(config.h)
-
 
 AC_CONFIG_FILES([Makefile]
 		[src/Makefile])
