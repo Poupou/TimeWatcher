@@ -7,7 +7,8 @@ distclean-local:
 	cd $(top_srcdir) && find . -name "*~" -exec rm -f {} \;
 
 all-local:
-	ln -sf ./src/timeWatcher timeWatcher
+	ln -sf ./src/clockreader clockreader
+
 
 
 

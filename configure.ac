@@ -12,7 +12,7 @@ else
 	AM_CPPFLAGS="-DNDEBUG"
 fi
 
-AM_CXXFLAGS="$AM_CXXFLAGS -O3 -W -Wall -Wextra -std=c++11"
+AM_CXXFLAGS="$AM_CXXFLAGS -O3 -W -Wall -Wextra"
 
 AC_PROG_CXX(g++)
 
