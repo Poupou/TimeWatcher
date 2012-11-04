@@ -9,5 +9,8 @@ distclean-local:
 all-local:
 	ln -sf ./src/timeWatcher timeWatcher
 
+check-local:
+	python tests/main.py
+
 
 
