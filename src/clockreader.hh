@@ -11,7 +11,4 @@
 #include "clockdetect.hh"
 #include "timereader.hh"
 
-
-
-
 #endif // !CLOCK_READER_HH_
