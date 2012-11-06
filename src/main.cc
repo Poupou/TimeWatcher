@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 
     return 0;
   }
-  else if (mode == "reader")
+  else if (mode == "read")
   {
     std::vector<Mask> masks = read_masks();
 

@@ -10,14 +10,19 @@ std::ostream& operator<< (std::ostream& ostr, std::pair<int, int>& hour)
 {
   return ostr <<
 	      ((hour.first < 10) ? "0" : "") << hour.first
-	      << "" <<
-	      ((hour.second < 10) ? "0" : "") << std::endl;
+	      << ":" <<
+	      ((hour.second < 10) ? "0" : "") << hour.second;
 }
 
 hourvector readclock(std::vector<Mask> parMasks,
 		     std::string& parFilePath)
 {
-  return hourvector();
+
+  hourvector hv;
+  std::pair<int, int> tst(12, 5);
+  hv.push_back(tst);
+
+  return hv;
 }
 
 

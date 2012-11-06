@@ -42,7 +42,7 @@ def call_bin(mode, filename, mask=None):
 
     print "Exec: " + " ".join(cmd)
 
-    if mode == "detect":
+    if mode == "detect" or mode == "read":
         p = sp.Popen(cmd, stdout=sp.PIPE, stdin=stdin)
         out = p.communicate(input=mask)[0][:-1]
         return (p.returncode, out)
@@ -98,18 +98,39 @@ def test_detect(data):
 
 def test_read(data):
     results = {"test": 0, "ok": 0}
-    for (filename, (mask, hour)) in gen_read(data).items():
+    for (filename, (mask, hours_should)) in gen_read(data).items():
         (ret, out) = call_bin("read", filename, mask)
+
+        sort_hour = lambda ls: sorted(ls, cmp=lambda a, b: a[0] < b[0] or a[1] < b[1])
+
+        hours_out = map(lambda x: map(int, x.split(":")), out.split("\n"))
+        hours_out = sort_hour(hours_out)
+        hours_should = sort_hour(hours_should)
 
         results["test"] += 1
 
-        print "OUT:"
-        print out
-        print "SHOULD:"
-        print hour
+        # TODO: take into account % 12 and % 60 (12:59 ~= 01:02)
+        if len(hours_out) == len(hours_should):
+            d = 0
+            dist = lambda lsa, lsb: sum(map(lambda a, b: (a - b) ** 2, lsa, lsb))
 
-        if out == hour:
-            results["ok"] += 1
+            for (i, h) in enumerate(hours_should):
+                d += dist(h, hours_out[i])
+
+            if d < 3:
+                results["ok"] += 1
+            else:
+                print "distance:", d
+                print "Got:"
+                print hours_out
+                print "Instead of:"
+                print hours_should
+        else:
+            print "distance:", d
+            print "Got:"
+            print hours_out
+            print "Instead of:"
+            print hours_should
     return results
 
 def test_full(data):

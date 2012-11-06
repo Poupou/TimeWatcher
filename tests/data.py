@@ -9,10 +9,14 @@ DATA = {
     },
     "read":
     {
-        "basic-1": "02:50",
-        "registry-office": "01:04",
-        "belfast": "11:35",
-        "big-ben-2": "05:43",
-        "clock-1": "01:01",
+        "basic-1": ["02:50"],
+        "registry-office": ["01:04"],
+        "belfast": ["11:35"],
+        "big-ben-2": ["05:43"],
+        "clock-1": ["01:01"],
     }
 }
+
+for f in DATA["read"]:
+    DATA["read"][f] = map(lambda x: map(int, x.split(":")), DATA["read"][f])
+
