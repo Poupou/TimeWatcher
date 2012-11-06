@@ -1,8 +1,11 @@
 #! /usr/bin/python2.6
 # -*- coding: utf-8 -*-
 import sys
+import math
 import data
 import subprocess as sp
+
+PATH_BIN = "./clockreader"
 
 def gen_detect(data):
     """
@@ -31,21 +34,24 @@ def gen_read(data):
         r[filename] = (mask, read[filename])
     return r
 
-PATH_BIN = "./BIN"
 
 def call_bin(mode, filename, mask=None):
+    filename = "images/" + filename + ".jpg"
     cmd = [PATH_BIN, mode, filename]
     stdin = sp.PIPE if mask is not None else None
 
     print "Exec: " + " ".join(cmd)
 
-    #p = sp.Popen(cmd, stdout=sp.PIPE, stdin=stdin)
-    #out = p.communicate(input=mask)[0]
-
-    #return (p.returncode, out)
+    if mode == "detect":
+        p = sp.Popen(cmd, stdout=sp.PIPE, stdin=stdin)
+        out = p.communicate(input=mask)[0][:-1]
+        return (p.returncode, out)
     return (0, "12:05")
 
 def test_detect(data):
+    """
+    Run the clock detection tests, compare the resulting masks (coordinates).
+    """
     results = {"test": 0, "ok": 0}
 
     for (filename, mask) in gen_detect(data).items():
@@ -53,13 +59,41 @@ def test_detect(data):
 
         results["test"] += 1
 
-        print "OUT:"
-        print out
-        print "SHOULD:"
-        print mask
-
         if out == mask:
             results["ok"] += 1
+        # String are different, compare the coordinates
+        else:
+
+            # string output -> numeric masks (sorted by coordinates)
+            mask_sort = lambda ls: sorted(ls,
+                                          cmp=lambda a, b: (a[0] < b[0] or
+                                                            a[1] < b[1]))
+            dist = lambda a, b : math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+
+            masks_should = map(lambda x: map(int, x.split(" ")), mask.split("\n"))
+            masks_out = map(lambda x: map(int, x.split(" ")), out.split("\n"))
+
+            masks_should = mask_sort(masks_should)
+            masks_out = mask_sort(masks_out)
+
+            # TODO: Compute common area between the 2 masks
+            # compute distances
+            dist_sum = float("inf")
+            if len(masks_should) == len(masks_out):
+                dist_sum = 0
+                for (i, ms) in enumerate(masks_should):
+                    mo = masks_out[i]
+                    dist_sum += dist(ms, mo)
+
+            # Display the error, or add a good result
+            if dist_sum > 10:
+                print "Got:"
+                print masks_out
+                print "Instead of:"
+                print masks_should
+            else:
+                results["ok"] += 1
+
     return results
 
 def test_read(data):
@@ -98,7 +132,7 @@ def main(args):
     print "Detect:"
     r = test_detect(data.DATA)
 
-    print r["ok"], "/", r["test"]
+    print "Finally:", r["ok"], "/", r["test"]
     print
 
     print "Read:"
