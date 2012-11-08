@@ -6,6 +6,20 @@
 typedef std::vector<std::pair<int, int> > hourvector;
 
 
+class TTimeReader
+{
+  public:
+    TTimeReader(cv::Mat& parImg);
+    ~TTimeReader();
+
+  public:
+    std::pair<int, int> GetHoursFromMask(Mask& parMask);
+
+  private:
+    cv::Mat& FImage;
+};
+
+
 std::ostream& operator<< (std::ostream& ostr, std::pair<int, int>& hour)
 {
   return ostr <<

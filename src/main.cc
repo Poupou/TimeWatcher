@@ -31,6 +31,7 @@ int main(int argc, char** argv)
   else if (mode == "reader")
   {
     std::vector<Mask> masks = read_masks();
+    print_masks(masks);
 
     hourvector hours = readclock(masks, filename);
 
