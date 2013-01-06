@@ -2,6 +2,8 @@
 # define TIME_READER_HH_
 
 # include <vector>
+# include <cv.h>
+# include "mask.hh"
 
 typedef std::vector<std::pair<int, int> > hourvector;
 
@@ -13,6 +15,8 @@ class TTimeReader
     ~TTimeReader();
 
   public:
+    cv::Mat GetSubImg(int parOriginX, int parOriginY,
+		       int parWidth, int parHeight);
     std::pair<int, int> GetHoursFromMask(Mask& parMask);
 
   private:
@@ -20,19 +24,8 @@ class TTimeReader
 };
 
 
-std::ostream& operator<< (std::ostream& ostr, std::pair<int, int>& hour)
-{
-  return ostr <<
-	      ((hour.first < 10) ? "0" : "") << hour.first
-	      << "" <<
-	      ((hour.second < 10) ? "0" : "") << std::endl;
-}
-
-hourvector readclock(std::vector<Mask> parMasks,
-		     std::string& parFilePath)
-{
-  return hourvector();
-}
+std::ostream& operator<< (std::ostream& ostr, std::pair<int, int>& hour);
+hourvector readclock(std::vector<Mask> parMasks, std::string& parFilePath);
 
 
 
