@@ -71,6 +71,7 @@ TTimeReader::GetHoursFromMask(Mask& parMask)
   cv::Mat coloredclock = clock.clone();
 
   cv::cvtColor(clock, clock, CV_BGR2GRAY);
+//  cv::Canny(clock, clock, 100, 200, 5);
   cv::threshold(clock, clock, 127, 255, cv::THRESH_BINARY);
   cv::Mat cannyimg, cdst;
 
@@ -239,14 +240,15 @@ hourvector readclock(std::vector<Mask> parMasks,
   cv::Mat origImage = cv::imread(parFilePath, CV_LOAD_IMAGE_COLOR);
 
   TTimeReader tr = TTimeReader(origImage);
- // Mask m(1420, 1408, 480, 484, 0); // bigben-1
-  //Mask m(198, 132, 96, 96, 0); // basic-1
+  Mask m(1420, 1408, 480, 484, 0); // bigben-1 NOK
+//  Mask m(198, 132, 96, 96, 0); // basic-1 OK
 
-  //Mask m(474, 484, 400, 400, 0); // basic-2
-//  Mask m(1674, 1150, 326, 326, 0); // TIRF/5.jpg
-  //Mask m(1209, 960, 210, 210, 0); // TIRF/6.jpg
-  //Mask m(1035, 993, 218, 218, 0); // TIRF/13.jpg
-  Mask m(1125, 696, 132, 132, 0); // TIRF/15.jpg
+ // Mask m(474, 484, 400, 400, 0); // basic-2 OK
+//  Mask m(1674, 1150, 326, 326, 0); // TIRF/5.jpg OK
+  //Mask m(1209, 960, 210, 210, 0); // TIRF/6.jpg OK
+  //Mask m(1035, 993, 218, 218, 0); // TIRF/13.jpg OK
+  //Mask m(1125, 696, 132, 132, 0); // TIRF/15.jpg OK
+  //Mask m(1696, 394, 178, 178, 0); // TIRF/17.jpg // NOK
 
   m.major_rad_ = reduct_x_pourcent(m.major_rad_, 0);
   m.minor_rad_ = reduct_x_pourcent(m.minor_rad_, 0);
