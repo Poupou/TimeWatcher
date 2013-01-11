@@ -2,7 +2,8 @@ bin_PROGRAMS = clockreader
 
 clockreader_LDADD = $(OPENCV_LIBS)
 clockreader_CPPFLAGS = $(OPENCV_CFLAGS)
-clockreader_SOURCES = main.cc
+clockreader_CXXLAGS = $(OPENCV_CFLAGS) `pkg-config --cflags opencv`
+clockreader_SOURCES = main.cc timereader.cc clockdetect.cc mask.cc
 
 
 #timeWatcher_LDFLAGS = `pkg-config --libs opencv`
