@@ -1,26 +1,39 @@
 #include "clockreader.hh"
 
+void display(std::string name, cv::Mat& img)
+{
+  cv::namedWindow(name, CV_WINDOW_AUTOSIZE);
+  cv::imshow(name, img);
+  cv::waitKey();
+}
+
 std::vector<Mask> clock_detect(std::string& filename)
 {
+  std::vector<Mask> masks;
+
   cv::Mat img = cv::imread(filename, CV_LOAD_IMAGE_COLOR);
   cv::Mat gray;
+  cv::Mat binarized;
+  cv::Mat blurred;
 
   cv::cvtColor(img, gray, CV_BGR2GRAY);
-//  cv::GaussianBlur(img, img, cv::Size(9, 9), 2, 2);
+  cv::GaussianBlur(gray, blurred, cv::Size(9, 9), 2, 2);
+
+  cv::threshold(gray, binarized, 1, 255, CV_THRESH_OTSU);
+
+  cv::imwrite("gray.png", gray);
+  cv::imwrite("binarized.png", binarized);
 
   cv::Mat img2;
   cv::Mat img3;
 
   //cv::Sobel(img, img2, -1, 1, 1);
-  //cv::threshold(img2, img3, 1, 255, CV_THRESH_OTSU);
-  cv::Canny(gray, gray, 150, 200, 3);
+  //cv::Canny(gray, gray, 150, 200, 3);
 
   std::vector<cv::Vec3f> circles;
-  cv::HoughCircles(gray, circles, CV_HOUGH_GRADIENT, 1, img.rows / 10, 100, 100, 0, 0);
+  cv::HoughCircles(blurred, circles, CV_HOUGH_GRADIENT, 1, img.rows / 10, 100, 50, 0, 0);
 
   std::cerr << "circles detected: " << circles.size() << std::endl;
-
-  std::vector<Mask> masks;
 
   for (size_t i = 0; i < circles.size(); i++ )
   {
@@ -38,16 +51,10 @@ std::vector<Mask> clock_detect(std::string& filename)
   //cv::add(img3, img2, img);
   //cv::Canny(img, img, 10, 100);
 
-  //cv::imwrite("out1.png", img);
+  cv::imwrite("circles.png", img);
+
   //cv::imwrite("out2.png", img2);
   //cv::imwrite("out3.png", img3);
-  cv::namedWindow("canny", CV_WINDOW_AUTOSIZE);
-  cv::imshow("canny", gray);
-  cv::waitKey();
-
-  cv::namedWindow("circles", CV_WINDOW_AUTOSIZE);
-  cv::imshow("circles", img);
-  cv::waitKey();
 
   return masks;
 }
