@@ -23,18 +23,28 @@ class TTimeReader
     std::pair<int, int> GetHoursFromMask(Mask& parMask);
 
   private:
+    void init_work_image(Mask& parMask);
+    bool close_angle(int angle1, int angle2, float pourcent) const;
+    void find_clock_wise(int dist);
+    void show_work_circle(int dist);
+    void show_clock_wise(int dist) const;
+    void fill_clockwise(cv::Mat& filled_clokwise, cv::Point point);
     bool is_clock();
     void evalutate_length();
-    void isolate_clockwise(cv::Point point);
+    void isolate_clockwise();
+    void find_clockwise_from_angle();
 
   private:
-    unsigned int FHourAngle;
-    unsigned int FMinuteAngle;
+    bool is_clock_;
+    int FHourAngle;
+    int FMinuteAngle;
+    float r_;
+    cv::Point center_;
     std::vector<std::pair<unsigned int, unsigned int> > FAngles;
     cv::Mat& FImage;
     cv::Mat FClockImage;
-    cv::Mat FDeletedClockwise;
     cv::Mat FIsolatedClockwise;
+    cv::Mat FColoredClock;
 };
 
 
