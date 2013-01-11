@@ -14,7 +14,7 @@ hourvector readclock(std::vector<Mask> parMasks, std::string& parFilePath);
 class TTimeReader
 {
   public:
-    TTimeReader(cv::Mat& parImg);
+    TTimeReader(cv::Mat& parImg, const std::string& path);
     ~TTimeReader();
 
   public:
@@ -23,6 +23,9 @@ class TTimeReader
     std::pair<int, int> GetHoursFromMask(Mask& parMask);
 
   private:
+    //double mean(cv::Mat& img, int row, int col, int border_size);
+    //double standard_deviation(cv::Mat& img, int row, int col, int border_size, double m);
+    //void sauvola(const cv::Mat& src, cv::Mat& dest, int mode);
     void init_work_image(Mask& parMask);
     bool close_angle(int angle1, int angle2, float pourcent) const;
     void find_clock_wise(int dist);
@@ -45,6 +48,7 @@ class TTimeReader
     cv::Mat FClockImage;
     cv::Mat FIsolatedClockwise;
     cv::Mat FColoredClock;
+    std::string path_;
 };
 
 

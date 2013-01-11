@@ -1,17 +1,90 @@
+#include <libgen.h>
 #include <cmath>
 #include "mask.hh"
 #include "clockreader.hh"
+#include "sauvola.hh"
 
 #define PI 3.14159265359
 
-TTimeReader::TTimeReader(cv::Mat& parImg)
+
+TTimeReader::TTimeReader(cv::Mat& parImg, const std::string& path)
 : FImage(parImg)
+, path_(path)
 {
 }
 
 TTimeReader::~TTimeReader()
 {
 }
+
+/*
+void
+TTimeReader::sauvola(const cv::Mat& src, cv::Mat& dest, int mode)
+{
+  dest = src.clone();
+  int border_size = floor(KERNEL_SIZE / 2.0);
+
+  cv::Mat temp(src.size().width + border_size, src.size().height + border_size, CV_8UC1);
+  temp.setTo(cv::Scalar(0, 0, 0,0));
+
+  cv::copyMakeBorder(src, temp, border_size, border_size, border_size, border_size,
+		     cv::BORDER_REPLICATE);
+
+  for (int i = border_size; i < src.size().height + border_size; i++)
+    for (int j = border_size; j < src.size().width + border_size; j++)
+    {
+      double m, s;
+      uchar t, g, b;
+
+      m = mean(temp, i, j, border_size);
+      s = standard_deviation(temp, i, j, border_size, m);
+      t = (uchar) (m * (1 + SAUVOLA_K_PARAM * (s / SAUVOLA_K_PARAM - 1)));
+
+      g = temp.at<uchar>(cv::Point(i, j));
+      if (g <= t)
+      {
+	if (mode == THRESH_BINARY)
+	  b = 0;
+	else
+	  b = g;
+      }
+      else
+	b = 255;
+
+      uchar* pixel = dest.ptr(i - border_size, j - border_size);
+      *pixel = b;
+    }
+}
+
+double TTimeReader::mean(cv::Mat& img, int row, int col, int border_size)
+{
+  double total = 0.0;
+
+  for (int i = row - border_size; i <= row + border_size; ++i)
+    for (int j = col - border_size; j <= col + border_size; ++j)
+    {
+      uchar g = img.at<uchar>(cv::Point(i, j));
+      total += g;
+    }
+
+  return total / (KERNEL_SIZE * KERNEL_SIZE);
+}
+
+double TTimeReader::standard_deviation(cv::Mat& img, int row, int col, int border_size, double m)
+{
+  double total = 0.0;
+
+  for (int i = row - border_size; i <= row + border_size; ++i)
+    for (int j = col - border_size; j <= col + border_size; ++j)
+    {
+      uchar g = img.at<uchar>(cv::Point(i, j));
+      double deviation = 0.0;
+      deviation = (double) g - m;
+      total += deviation * deviation;
+    }
+
+  return sqrt(total / (KERNEL_SIZE * KERNEL_SIZE));
+} */
 
 cv::Mat
 TTimeReader::GetSubImg(int parOriginX, int parOriginY,
@@ -148,7 +221,7 @@ TTimeReader::find_clock_wise(int dist)
     {
       enterAngle = i;
       clockwisefound++;
-      if (clockwisefound == 4)
+      if (clockwisefound > 4)
       {
 	FHourAngle = -1;
 	FMinuteAngle = -1;
@@ -210,6 +283,13 @@ TTimeReader::show_clock_wise(int dist) const
 
   cv::namedWindow("ClockWises", CV_WINDOW_AUTOSIZE);
   cv::imshow("ClockWises", coloredclock);
+
+  std::string p = path_;
+  p.append("_clockwises.jpg");
+  std::vector<int> compresion_param;
+  compresion_param.push_back(CV_IMWRITE_PNG_COMPRESSION);
+  compresion_param.push_back(9);
+  cv::imwrite(p.c_str(), coloredclock, compresion_param);
   cv::waitKey(0);
 }
 
@@ -295,6 +375,17 @@ TTimeReader::GetHoursFromMask(Mask& parMask)
   isolate_clockwise();
   find_clockwise_from_angle();
 
+  cv::Mat out = FColoredClock.clone();
+  for (int i = 5; i >= 3; --i)
+    cv::circle(out, center_, r_ / i, cv::Scalar(255, 0, 0), 1, 8, 0);
+
+  std::string p = path_;
+  p.append("_circles.jpg");
+  std::vector<int> compresion_param;
+  compresion_param.push_back(CV_IMWRITE_PNG_COMPRESSION);
+  compresion_param.push_back(9);
+  cv::imwrite(p.c_str(), out, compresion_param);
+
   if (is_clock_)
     show_clock_wise(2);
 
@@ -316,6 +407,11 @@ TTimeReader::init_work_image(Mask& parMask)
 
   cv::cvtColor(clock, clock, CV_BGR2GRAY);
   cv::threshold(clock, clock, 127, 255, cv::THRESH_BINARY);
+//  cv::equalizeHist(clock, clock);
+  sauvola(clock, clock, clock.size().height, 0.000001);
+
+//  sauvola(clock, clock, THRESH_GRAYSCALE);
+
   cv::Mat cannyimg, cdst;
 
   //unsigned int erodesize = 3;
@@ -355,16 +451,16 @@ hourvector readclock(std::vector<Mask>,
 {
   cv::Mat origImage = cv::imread(parFilePath, CV_LOAD_IMAGE_COLOR);
 
-  TTimeReader tr = TTimeReader(origImage);
+  TTimeReader tr = TTimeReader(origImage, parFilePath);
 //  Mask m(1420, 1408, 480, 484, 0); // bigben-1 NOK
-//  Mask m(198, 132, 96, 96, 0); // basic-1 OK
+// Mask m(198, 132, 96, 96, 0); // basic-1 OK
 
  //Mask m(474, 484, 400, 400, 0); // basic-2 OK
- // Mask m(1674, 1150, 326, 326, 0); // TIRF/5.jpg OK
+ Mask m(1674, 1150, 326, 326, 0); // TIRF/5.jpg OK
   //Mask m(1209, 960, 210, 210, 0); // TIRF/6.jpg OK
-  //Mask m(1035, 993, 218, 218, 0); // TIRF/13.jpg OK
-  //Mask m(1125, 696, 132, 132, 0); // TIRF/15.jpg OK
-  Mask m(1696, 394, 178, 178, 0); // TIRF/17.jpg // NOK
+ // Mask m(1035, 993, 218, 218, 0); // TIRF/13.jpg OK
+//  Mask m(1125, 696, 132, 132, 0); // TIRF/15.jpg OK
+ // Mask m(1696, 394, 178, 178, 0); // TIRF/17.jpg // NOK
 
   m.major_rad_ = reduct_x_pourcent(m.major_rad_, 0);
   m.minor_rad_ = reduct_x_pourcent(m.minor_rad_, 0);

@@ -30,7 +30,7 @@ int main(int argc, char** argv)
   }
   else if (mode == "read")
   {
-    std::vector<Mask> masks = clock_detect(filename);
+    std::vector<Mask> masks;// = clock_detect(filename);
     {
       std::vector<Mask>::iterator end = masks.end();
       std::vector<Mask>::iterator it = masks.begin();
