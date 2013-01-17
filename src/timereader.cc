@@ -166,16 +166,9 @@ TTimeReader::isolate_clockwise()
 
 
 
-  cv::namedWindow("ClockWises", CV_WINDOW_AUTOSIZE);
-  cv::imshow("ClockWises", FIsolatedClockwise);
-  cv::waitKey(0);
-
-  std::vector<int> compresion_param;
-  compresion_param.push_back(CV_IMWRITE_PNG_COMPRESSION);
-  compresion_param.push_back(9);
-  std::string p = path_;
-  p.append("isolated.jpg");
-  cv::imwrite(p.c_str(), FIsolatedClockwise, compresion_param);
+  //cv::namedWindow("ClockWises", CV_WINDOW_AUTOSIZE);
+  //cv::imshow("ClockWises", FIsolatedClockwise);
+  //cv::waitKey(0);
 }
 
 void
@@ -184,9 +177,9 @@ TTimeReader::show_work_circle(int dist)
   cv::Mat debug = FIsolatedClockwise.clone();
   cv::circle(debug, center_, r_ / dist, cv::Scalar(255, 255, 255), 1, 8, 0);
 
-  cv::namedWindow("Canny img", CV_WINDOW_AUTOSIZE);
-  cv::imshow("Canny img", debug);
-  cv::waitKey(0);
+  //cv::namedWindow("Canny img", CV_WINDOW_AUTOSIZE);
+  //cv::imshow("Canny img", debug);
+  //cv::waitKey(0);
 }
 
 void
@@ -216,7 +209,6 @@ TTimeReader::find_clock_wise(int dist)
       j++;
     }
   }
-  cv::imwrite("out1.png", FIsolatedClockwise);
 
   uchar previous = 255;
   j %= 360;
@@ -304,16 +296,15 @@ TTimeReader::show_clock_wise(int dist) const
   line(coloredclock, center_, hourpoint, cv::Scalar(0, 255, 255), 5, CV_AA);
   line(coloredclock, center_, minutepoint, cv::Scalar(255, 0, 0), 3, CV_AA);
 
-  cv::namedWindow("ClockWises", CV_WINDOW_AUTOSIZE);
-  cv::imshow("ClockWises", coloredclock);
+  cv::namedWindow("result", CV_WINDOW_AUTOSIZE);
+  cv::imshow("result", coloredclock);
+  cv::waitKey(0);
 
-  std::string p = path_;
-  p.append("_clockwises.jpg");
   std::vector<int> compresion_param;
   compresion_param.push_back(CV_IMWRITE_PNG_COMPRESSION);
   compresion_param.push_back(9);
+  std::string p = "out.png";
   cv::imwrite(p.c_str(), coloredclock, compresion_param);
-  cv::waitKey(0);
 }
 
 void
@@ -348,54 +339,45 @@ TTimeReader::find_clockwise_from_angle()
   FHourAngle = -1;
   FMinuteAngle = -1;
 
-  float pourcent = 0.05f;
+  float pourcent = 0.1;
 
   is_clock_ = true;
 
-  if (hoursangles[1] != -1 &&
-      hoursangles[2] != -1 &&
-      close_angle(hoursangles[1], hoursangles[2], pourcent))
-    FHourAngle = (hoursangles[1] + hoursangles[2]) / 2;
-  else if (hoursangles[0] != -1 &&
-	   hoursangles[2] != -1 &&
-	   close_angle(hoursangles[0], hoursangles[2], pourcent))
-    FHourAngle = (hoursangles[0] + hoursangles[2]) / 2;
-  else if (hoursangles[0] != -1 &&
-	   hoursangles[1] != -1 &&
-	   close_angle(hoursangles[0], hoursangles[1], pourcent))
-    FHourAngle = (hoursangles[0] + hoursangles[1]) / 2;
-  else if (nbourslessthan1 == 2)
+  if (nbourslessthan1 <= 1)
   {
-      for (int i = 0; i < 3; ++i)
-      {
-	if (hoursangles[i] != -1)
-	  FHourAngle = hoursangles[i];
-      }
+    if (hoursangles[1] != -1 &&
+        hoursangles[2] != -1 &&
+        close_angle(hoursangles[1], hoursangles[2], pourcent))
+      FHourAngle = (hoursangles[1] + hoursangles[2]) / 2;
+    else if (hoursangles[0] != -1 &&
+             hoursangles[2] != -1 &&
+             close_angle(hoursangles[0], hoursangles[2], pourcent))
+      FHourAngle = (hoursangles[0] + hoursangles[2]) / 2;
+    else if (hoursangles[0] != -1 &&
+             hoursangles[1] != -1 &&
+             close_angle(hoursangles[0], hoursangles[1], pourcent))
+      FHourAngle = (hoursangles[0] + hoursangles[1]) / 2;
+    else
+      is_clock_ = false;
   }
-  else
-    is_clock_ = false;
 
-  if (minuteangles[1] != -1 &&
-      minuteangles[2] != -1 &&
-      close_angle(minuteangles[1], minuteangles[2], pourcent))
-    FMinuteAngle = (minuteangles[1] + minuteangles[2]) / 2;
-  else if (minuteangles[0] != -1 &&
-	   minuteangles[2] != -1 &&
-	   close_angle(minuteangles[0], minuteangles[2], pourcent))
-    FMinuteAngle = (minuteangles[0] + minuteangles[2]) / 2;
-  else if (minuteangles[0] != -1 &&
-	   minuteangles[1] != -1 &&
-	   close_angle(minuteangles[0], minuteangles[1], pourcent))
-    FMinuteAngle = (minuteangles[0] + minuteangles[1]) / 2;
-
-  else if (nbminlessthan1 == 2)
+  if (nbminlessthan1 <= 1)
   {
-      for (int i = 0; i < 3; ++i)
-	if (minuteangles[i] != -1)
-	  FMinuteAngle = minuteangles[i];
+    if (minuteangles[1] != -1 &&
+        minuteangles[2] != -1 &&
+        close_angle(minuteangles[1], minuteangles[2], pourcent))
+      FMinuteAngle = (minuteangles[1] + minuteangles[2]) / 2;
+    else if (minuteangles[0] != -1 &&
+             minuteangles[2] != -1 &&
+             close_angle(minuteangles[0], minuteangles[2], pourcent))
+      FMinuteAngle = (minuteangles[0] + minuteangles[2]) / 2;
+    else if (minuteangles[0] != -1 &&
+             minuteangles[1] != -1 &&
+             close_angle(minuteangles[0], minuteangles[1], pourcent))
+      FMinuteAngle = (minuteangles[0] + minuteangles[1]) / 2;
+    else
+      is_clock_ = false;
   }
-  else
-    is_clock_ = false;
 }
 
 
@@ -405,17 +387,6 @@ TTimeReader::GetHoursFromMask(Mask& parMask)
   init_work_image(parMask);
   isolate_clockwise();
   find_clockwise_from_angle();
-
-  cv::Mat out = FColoredClock.clone();
-  for (int i = 5; i >= 3; --i)
-    cv::circle(out, center_, r_ / i, cv::Scalar(255, 0, 0), 1, 8, 0);
-
-  std::string p = path_;
-  p.append("_circles.jpg");
-  std::vector<int> compresion_param;
-  compresion_param.push_back(CV_IMWRITE_PNG_COMPRESSION);
-  compresion_param.push_back(9);
-  cv::imwrite(p.c_str(), out, compresion_param);
 
   if (is_clock_)
     show_clock_wise(2);
@@ -436,13 +407,6 @@ TTimeReader::init_work_image(Mask& parMask)
   cv::Mat clock = GetSubImg(parMask.x_ - parMask.major_rad_,
 			    parMask.y_ - parMask.major_rad_,
 			    2 * parMask.major_rad_, 2 * parMask.major_rad_);
-
-  std::vector<int> compresion_param;
-  compresion_param.push_back(CV_IMWRITE_PNG_COMPRESSION);
-  compresion_param.push_back(9);
-  std::string p = path_;
-  p.append("orig.jpg");
-  cv::imwrite(p.c_str(), clock, compresion_param);
 
   FColoredClock = clock.clone();
 
@@ -465,13 +429,7 @@ TTimeReader::init_work_image(Mask& parMask)
   cv::Mat canny;
   cv::Canny(clock, canny, 100, 200, 3);
 
-  cv::namedWindow("Canny img", CV_WINDOW_AUTOSIZE);
-  cv::imshow("Canny img", canny);
-  cv::waitKey(0);
   sauvola(clock, clock, clock.size().height / 8, 0.01);
-  p = path_;
-  p.append("sauvola.jpg");
-  cv::imwrite(p.c_str(), clock, compresion_param);
 
 //  sauvola(clock, clock, THRESH_GRAYSCALE);
 
@@ -488,10 +446,6 @@ TTimeReader::init_work_image(Mask& parMask)
 //  //cv::waitKey(0);
 //  //cv::imshow("Canny img", clock);
 //  //cv::waitKey(0);
-
-  cv::namedWindow("Canny img", CV_WINDOW_AUTOSIZE);
-  cv::imshow("Canny img", clock);
-  cv::waitKey(0);
 
   FClockImage = clock;
 }
