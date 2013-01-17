@@ -177,9 +177,9 @@ TTimeReader::show_work_circle(int dist)
   cv::Mat debug = FIsolatedClockwise.clone();
   cv::circle(debug, center_, r_ / dist, cv::Scalar(255, 255, 255), 1, 8, 0);
 
-  //cv::namedWindow("Canny img", CV_WINDOW_AUTOSIZE);
-  //cv::imshow("Canny img", debug);
-  //cv::waitKey(0);
+  cv::namedWindow("Canny img", CV_WINDOW_AUTOSIZE);
+  cv::imshow("Canny img", debug);
+  cv::waitKey(0);
 }
 
 void
@@ -237,14 +237,14 @@ TTimeReader::find_clock_wise(int dist)
       {
 	if ((i - enterAngle) > max)
 	{
-	  std::cerr << "hour angle =" << (i + enterAngle) / 2  << std::endl;
+	  //std::cerr << "hour angle =" << (i + enterAngle) / 2  << std::endl;
 	  FMinuteAngle = FHourAngle;
 	  max = i - enterAngle;
 	  FHourAngle = (i + enterAngle) / 2;
 	}
 	else if (min == 10000 || i - enterAngle > min)
 	{
-	  std::cerr << "minute angle =" << (i + enterAngle) / 2  << std::endl;
+	  //std::cerr << "minute angle =" << (i + enterAngle) / 2  << std::endl;
 	  FMinuteAngle = (i + enterAngle) / 2;
 	  min = (i - enterAngle);
 	}
@@ -320,7 +320,7 @@ TTimeReader::find_clockwise_from_angle()
   int max = 5;
   for (int i = max; i >= max - 2; --i)
   {
-    show_work_circle(i);
+//    show_work_circle(i);
     find_clock_wise(i);
     hoursangles[max - i] = FHourAngle;
     minuteangles[max - i] = FMinuteAngle;
@@ -342,6 +342,10 @@ TTimeReader::find_clockwise_from_angle()
 
   if (nbourslessthan1 <= 1)
   {
+//    std::cerr << "hours" << hoursangles[0]
+//	      << " " << hoursangles[1]
+//	      << " " << hoursangles[2] << std::endl;
+
     if (hoursangles[1] != -1 &&
         hoursangles[2] != -1 &&
         close_angle(hoursangles[1], hoursangles[2], pourcent))
@@ -357,9 +361,14 @@ TTimeReader::find_clockwise_from_angle()
     else
       is_clock_ = false;
   }
+  else
+    is_clock_ = false;
 
   if (nbminlessthan1 <= 1)
   {
+//    std::cerr << "minutes=" << minuteangles[0]
+//	      << " " << minuteangles[1]
+//	      << " " << minuteangles[2] << std::endl;
     if (minuteangles[1] != -1 &&
         minuteangles[2] != -1 &&
         close_angle(minuteangles[1], minuteangles[2], pourcent))
@@ -375,6 +384,8 @@ TTimeReader::find_clockwise_from_angle()
     else
       is_clock_ = false;
   }
+  else
+    is_clock_ = false;
 }
 
 
@@ -441,17 +452,17 @@ TTimeReader::init_work_image(Mask& parMask)
 
   cv::Mat cannyimg, cdst;
 //
-  unsigned int erodesize = 3;
-  unsigned int dilatesize = 3;
+  unsigned int erodesize = 2;
+  unsigned int dilatesize = 2;
   cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(erodesize * 2 + 1, erodesize * 2 + 1), cv::Point(erodesize, erodesize));
   cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(dilatesize * 2 + 1, dilatesize * 2 + 1), cv::Point(dilatesize, dilatesize));
 //
   cv::erode(clock, clock, erodeElement);
   cv::dilate(clock, clock, dilateElement);
-//  //cv::imshow("Canny img", clock);
-//  //cv::waitKey(0);
-//  //cv::imshow("Canny img", clock);
-//  //cv::waitKey(0);
+  cv::imshow("Canny img", clock);
+  cv::waitKey(0);
+  cv::imshow("Canny img", clock);
+  cv::waitKey(0);
 
   FClockImage = clock;
 }
@@ -479,11 +490,15 @@ hourvector readclock(std::vector<Mask> masks,
 
   while (it != end)
   {
-    std::cerr << *it << std::endl;
-    if (it->major_rad_ > 40)
+    it->major_rad_ = reduct_x_pourcent(it->major_rad_, 20);
+    //std::cerr << *it << std::endl;
+    if (it->major_rad_ > 40
+	&& it->x_ + it->major_rad_ < origImage.size().width
+	&& it->x_ - it->major_rad_ >= 0
+	&& it->y_ + it->major_rad_ < origImage.size().height
+	&& it->y_ - it->major_rad_ >= 0)
     {
       TTimeReader tr = TTimeReader(origImage, parFilePath);
-      it->major_rad_ = reduct_x_pourcent(it->major_rad_, 20);
       tr.GetHoursFromMask(*it, result);
     }
     ++it;
