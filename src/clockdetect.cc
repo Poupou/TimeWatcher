@@ -52,6 +52,9 @@ std::vector<Mask> clock_detect(std::string& filename)
   //cv::Canny(img, img, 10, 100);
 
   cv::imwrite("circles.png", img);
+  cv::namedWindow("Circles", CV_WINDOW_AUTOSIZE);
+  cv::imshow("Circles", img);
+  cv::waitKey(0);
 
   //cv::imwrite("out2.png", img2);
   //cv::imwrite("out3.png", img3);
