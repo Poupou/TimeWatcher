@@ -177,14 +177,18 @@ TTimeReader::show_work_circle(int dist)
   cv::Mat debug = FIsolatedClockwise.clone();
   cv::circle(debug, center_, r_ / dist, cv::Scalar(255, 255, 255), 1, 8, 0);
 
-  //cv::namedWindow("Canny img", CV_WINDOW_AUTOSIZE);
-  //cv::imshow("Canny img", debug);
-  //cv::waitKey(0);
+  cv::namedWindow("Canny img", CV_WINDOW_AUTOSIZE);
+  cv::imshow("Canny img", debug);
+  cv::waitKey(0);
 }
 
 void
 TTimeReader::find_clock_wise(int dist)
 {
+<<<<<<< HEAD
+=======
+  //std::cerr << "NEW FIND CLOCK" << std::endl;
+>>>>>>> Delete debug prints
   float r = r_ / dist;
 
   FMinuteAngle = -1;
@@ -286,6 +290,11 @@ TTimeReader::show_clock_wise(int dist) const
   unsigned int height = FColoredClock.size().height;
   cv::Mat coloredclock = FColoredClock.clone();
 
+<<<<<<< HEAD
+=======
+  //std::cerr << "FHourAngle="  << FHourAngle << std::endl;
+  //std::cerr << "FMinuteAngle="  << FMinuteAngle << std::endl;
+>>>>>>> Delete debug prints
   cv::Point hourpoint(center_.x + cos(double(FHourAngle) * PI / 180.f) * r_ / (dist + 1),
 		      height - (center_.y + sin(double(FHourAngle) * PI / 180.f) * r_ / (dist + 1)));
   cv::Point minutepoint(center_.x + cos(double(FMinuteAngle) * PI / 180.f) * r_ / dist,
@@ -459,10 +468,10 @@ TTimeReader::init_work_image(Mask& parMask)
 //
   cv::erode(clock, clock, erodeElement);
   cv::dilate(clock, clock, dilateElement);
-  //cv::imshow("Canny img", clock);
-  //cv::waitKey(0);
-  //cv::imshow("Canny img", clock);
-  //cv::waitKey(0);
+  cv::imshow("Canny img", clock);
+  cv::waitKey(0);
+  cv::imshow("Canny img", clock);
+  cv::waitKey(0);
 
   FClockImage = clock;
 }
@@ -499,7 +508,12 @@ hourvector readclock(std::vector<Mask> masks,
 	&& it->y_ - it->major_rad_ >= 0)
     {
       TTimeReader tr = TTimeReader(origImage, parFilePath);
+<<<<<<< HEAD
+      it->major_rad_ = reduct_x_pourcent(it->major_rad_, 20);
       tr.GetHoursFromMask(*it, result);
+=======
+      r.push_back(tr.GetHoursFromMask(*it));
+>>>>>>> Delete debug prints
     }
     ++it;
   }
