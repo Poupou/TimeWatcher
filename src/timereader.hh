@@ -36,6 +36,8 @@ class TTimeReader
     void evalutate_length();
     void isolate_clockwise();
     void find_clockwise_from_angle();
+    bool are_angle_closes(unsigned int i, unsigned int j);
+    void is_clock(int hoursangles[3], int minuteangles[3]);
 
   private:
     bool is_clock_;
@@ -51,26 +53,5 @@ class TTimeReader
     std::string path_;
 };
 
-
-//
-// <<<<<<< HEAD
-//   return ostr <<
-// 	      ((hour.first < 10) ? "0" : "") << hour.first
-// 	      << ":" <<
-// 	      ((hour.second < 10) ? "0" : "") << hour.second;
-// }
-//
-// hourvector readclock(std::vector<Mask> parMasks,
-// 		     std::string& parFilePath)
-// {
-//
-//   hourvector hv;
-//   std::pair<int, int> tst(12, 5);
-//   hv.push_back(tst);
-//
-//   return hv;
-// }
-// =======
-// >>>>>>> ed456d753eb8085a908f5d38c460e2d310f1ca1f
 
 #endif // !TIME_READER_HH_

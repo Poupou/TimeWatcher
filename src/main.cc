@@ -30,23 +30,25 @@ int main(int argc, char** argv)
   }
   else if (mode == "read")
   {
-    std::vector<Mask> masks;// = clock_detect(filename);
-    {
-      std::vector<Mask>::iterator end = masks.end();
-      std::vector<Mask>::iterator it = masks.begin();
+    std::vector<Mask> masks = clock_detect(filename);
 
-      for (; it != end; ++it)
-        std::cout << (*it) << std::endl;
-    }
+    std::vector<Mask>::iterator end = masks.end();
+    std::vector<Mask>::iterator it = masks.begin();
+
+    for (; it != end; ++it)
+      std::cout << (*it) << std::endl;
+
+    std::cerr << "Reading..." << std::endl;
 
     hourvector hours = readclock(masks, filename);
 
+    {
+      hourvector::iterator end = hours.end();
+      hourvector::iterator it = hours.begin();
 
-    hourvector::iterator end = hours.end();
-    hourvector::iterator it = hours.begin();
-
-    for (; it != end; ++it)
-      std::cout << *it << std::endl;
+      for (; it != end; ++it)
+        std::cout << *it << std::endl;
+    }
   }
   else if (mode == "full")
   {

@@ -139,16 +139,19 @@ TTimeReader::fill_clockwise(cv::Mat& filled_clockwise, cv::Point point)
 void
 TTimeReader::isolate_clockwise()
 {
-  unsigned int erodesize = 4;
-  unsigned int dilatesize = 2;
-  cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(erodesize * 2 + 1, erodesize * 2 + 1), cv::Point(erodesize, erodesize));
-  cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(dilatesize * 2 + 1, dilatesize * 2 + 1), cv::Point(dilatesize, dilatesize));
-
   cv::Mat deletedClockwise = FClockImage.clone();
-  cv::dilate(deletedClockwise, FIsolatedClockwise, dilateElement);
-  cv::erode(deletedClockwise, FIsolatedClockwise, erodeElement);
 
-  fill_clockwise(deletedClockwise, center_);
+  for (int i = 0; i < deletedClockwise.size().width; ++i)
+    for (int j = 0; j < deletedClockwise.size().height; j++)
+    {
+      int deltai = center_.x - i;
+      int deltaj = center_.x - j;
+      if (sqrt(deltai*deltai + deltaj*deltaj) < deletedClockwise.size().height / 8)
+	*deletedClockwise.ptr(i, j) = 0;
+    }
+
+  cv::floodFill(deletedClockwise, center_, cv::Scalar(255, 255, 255));
+//  fill_clockwise(deletedClockwise, center_);
   FIsolatedClockwise = deletedClockwise - FClockImage;
 
   for (int i = 0; i < FClockImage.size().width; i++)
@@ -166,6 +169,13 @@ TTimeReader::isolate_clockwise()
   cv::namedWindow("ClockWises", CV_WINDOW_AUTOSIZE);
   cv::imshow("ClockWises", FIsolatedClockwise);
   cv::waitKey(0);
+
+  std::vector<int> compresion_param;
+  compresion_param.push_back(CV_IMWRITE_PNG_COMPRESSION);
+  compresion_param.push_back(9);
+  std::string p = path_;
+  p.append("isolated.jpg");
+  cv::imwrite(p.c_str(), FIsolatedClockwise, compresion_param);
 }
 
 void
@@ -209,6 +219,7 @@ TTimeReader::find_clock_wise(int dist)
   cv::imwrite("out1.png", FIsolatedClockwise);
 
   uchar previous = 255;
+  j %= 360;
   cv::namedWindow("Canny img", CV_WINDOW_AUTOSIZE);
 
   for (unsigned int i = j + 1; i % 360 != j; ++i)
@@ -231,18 +242,21 @@ TTimeReader::find_clock_wise(int dist)
 
     if (current == 255 && previous == 0)
     {
-      if ((i - enterAngle) > max)
+      if (i - enterAngle < 30)
       {
-	std::cerr << "hour angle =" << (i + enterAngle) / 2  << std::endl;
-	FMinuteAngle = FHourAngle;
-	max = i - enterAngle;
-	FHourAngle = (i + enterAngle) / 2;
-      }
-      else if (min == 10000 || i - enterAngle > min)
-      {
-	std::cerr << "minute angle =" << (i + enterAngle) / 2  << std::endl;
-	FMinuteAngle = (i + enterAngle) / 2;
-	min = (i - enterAngle);
+	if ((i - enterAngle) > max)
+	{
+	  std::cerr << "hour angle =" << (i + enterAngle) / 2  << std::endl;
+	  FMinuteAngle = FHourAngle;
+	  max = i - enterAngle;
+	  FHourAngle = (i + enterAngle) / 2;
+	}
+	else if (min == 10000 || i - enterAngle > min)
+	{
+	  std::cerr << "minute angle =" << (i + enterAngle) / 2  << std::endl;
+	  FMinuteAngle = (i + enterAngle) / 2;
+	  min = (i - enterAngle);
+	}
       }
     }
     previous = current;
@@ -265,6 +279,15 @@ TTimeReader::close_angle(int angle1, int angle2, float pourcent) const
 
   return false;
 }
+
+bool
+TTimeReader::are_angle_closes(unsigned int i, unsigned int j)
+{
+  int delta = std::max(i, j) - std::min(i, j);
+
+  return (delta < 10);
+}
+
 
 void
 TTimeReader::show_clock_wise(int dist) const
@@ -294,6 +317,11 @@ TTimeReader::show_clock_wise(int dist) const
 }
 
 void
+TTimeReader::is_clock(int hoursangles[3], int minuteangles[3])
+{
+}
+
+void
 TTimeReader::find_clockwise_from_angle()
 {
   int hoursangles[3] = {-1, -1, -1};
@@ -301,12 +329,13 @@ TTimeReader::find_clockwise_from_angle()
   int nbourslessthan1 = 0;
   int nbminlessthan1= 0;
 
-  for (int i = 5; i >= 3; --i)
+  int max = 5;
+  for (int i = max; i >= max - 2; --i)
   {
     show_work_circle(i);
     find_clock_wise(i);
-    hoursangles[5 - i] = FHourAngle;
-    minuteangles[5 - i] = FMinuteAngle;
+    hoursangles[max - i] = FHourAngle;
+    minuteangles[max - i] = FMinuteAngle;
     if (FHourAngle == -1)
       nbourslessthan1++;
     if (FMinuteAngle == -1)
@@ -338,8 +367,10 @@ TTimeReader::find_clockwise_from_angle()
   else if (nbourslessthan1 == 2)
   {
       for (int i = 0; i < 3; ++i)
+      {
 	if (hoursangles[i] != -1)
 	  FHourAngle = hoursangles[i];
+      }
   }
   else
     is_clock_ = false;
@@ -403,28 +434,57 @@ TTimeReader::init_work_image(Mask& parMask)
 			    parMask.y_ - parMask.major_rad_,
 			    2 * parMask.major_rad_, 2 * parMask.major_rad_);
 
+  std::vector<int> compresion_param;
+  compresion_param.push_back(CV_IMWRITE_PNG_COMPRESSION);
+  compresion_param.push_back(9);
+  std::string p = path_;
+  p.append("orig.jpg");
+  cv::imwrite(p.c_str(), clock, compresion_param);
+
   FColoredClock = clock.clone();
 
   cv::cvtColor(clock, clock, CV_BGR2GRAY);
-  cv::threshold(clock, clock, 127, 255, cv::THRESH_BINARY);
+
+  // on supprime ce qui est en dehor du cercle
+  for (int i = 0; i < clock.size().width; ++i)
+    for (int j = 0; j < clock.size().height; j++)
+    {
+      int deltai = center_.x - i;
+      int deltaj = center_.x - j;
+      if (sqrt(deltai*deltai + deltaj*deltaj) > parMask.major_rad_)
+	*clock.ptr(i, j) = 255;
+//      if (sqrt(deltai*deltai + deltaj*deltaj) < parMask.major_rad_ / 8)
+//	*clock.ptr(i, j) = 0;
+    }
+
 //  cv::equalizeHist(clock, clock);
-  sauvola(clock, clock, clock.size().height, 0.000001);
+//  cv::threshold(clock, clock, 70, 255, cv::THRESH_BINARY);
+  cv::Mat canny;
+  cv::Canny(clock, canny, 100, 200, 3);
+
+  cv::namedWindow("Canny img", CV_WINDOW_AUTOSIZE);
+  cv::imshow("Canny img", canny);
+  cv::waitKey(0);
+  sauvola(clock, clock, clock.size().height / 8, 0.01);
+  p = path_;
+  p.append("sauvola.jpg");
+  cv::imwrite(p.c_str(), clock, compresion_param);
 
 //  sauvola(clock, clock, THRESH_GRAYSCALE);
 
   cv::Mat cannyimg, cdst;
-
-  //unsigned int erodesize = 3;
-  //unsigned int dilatesize = 1;
-  //cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(erodesize * 2 + 1, erodesize * 2 + 1), cv::Point(erodesize, erodesize));
-  //cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(dilatesize * 2 + 1, dilatesize * 2 + 1), cv::Point(dilatesize, dilatesize));
-
-  //cv::dilate(clock, clock, dilateElement);
-  //cv::imshow("Canny img", clock);
-  //cv::waitKey(0);
-  //cv::erode(clock, clock, erodeElement);
-  //cv::imshow("Canny img", clock);
-  //cv::waitKey(0);
+//
+  unsigned int erodesize = 3;
+  unsigned int dilatesize = 3;
+  cv::Mat erodeElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(erodesize * 2 + 1, erodesize * 2 + 1), cv::Point(erodesize, erodesize));
+  cv::Mat dilateElement = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(dilatesize * 2 + 1, dilatesize * 2 + 1), cv::Point(dilatesize, dilatesize));
+//
+  cv::erode(clock, clock, erodeElement);
+  cv::dilate(clock, clock, dilateElement);
+//  //cv::imshow("Canny img", clock);
+//  //cv::waitKey(0);
+//  //cv::imshow("Canny img", clock);
+//  //cv::waitKey(0);
 
   cv::namedWindow("Canny img", CV_WINDOW_AUTOSIZE);
   cv::imshow("Canny img", clock);
@@ -446,25 +506,41 @@ unsigned int reduct_x_pourcent(int a, int pourcent)
   return (a - (a * pourcent / 100));
 }
 
-hourvector readclock(std::vector<Mask>,
+hourvector readclock(std::vector<Mask> masks,
 		     std::string& parFilePath)
 {
   cv::Mat origImage = cv::imread(parFilePath, CV_LOAD_IMAGE_COLOR);
+  auto it = masks.begin();
+  auto end = masks.end();
 
-  TTimeReader tr = TTimeReader(origImage, parFilePath);
+  while (it != end)
+  {
+    std::cerr << *it << std::endl;
+    if (it->major_rad_ > 40)
+    {
+      TTimeReader tr = TTimeReader(origImage, parFilePath);
+      it->major_rad_ = reduct_x_pourcent(it->major_rad_, 20);
+      tr.GetHoursFromMask(*it);
+    }
+    ++it;
+  }
+
+
 //  Mask m(1420, 1408, 480, 484, 0); // bigben-1 NOK
 // Mask m(198, 132, 96, 96, 0); // basic-1 OK
 
  //Mask m(474, 484, 400, 400, 0); // basic-2 OK
- Mask m(1674, 1150, 326, 326, 0); // TIRF/5.jpg OK
-  //Mask m(1209, 960, 210, 210, 0); // TIRF/6.jpg OK
- // Mask m(1035, 993, 218, 218, 0); // TIRF/13.jpg OK
-//  Mask m(1125, 696, 132, 132, 0); // TIRF/15.jpg OK
- // Mask m(1696, 394, 178, 178, 0); // TIRF/17.jpg // NOK
+ //Mask m(1674, 1150, 326, 326, 0); // TIRF/5.jpg OK
+ // Mask m(1216, 978, 231, 231, 0); // TIRF/6.jpg processed OK
+//  Mask m(1209, 960, 210, 210, 0); // TIRF/6.jpg OK
 
-  m.major_rad_ = reduct_x_pourcent(m.major_rad_, 0);
-  m.minor_rad_ = reduct_x_pourcent(m.minor_rad_, 0);
-  tr.GetHoursFromMask(m);
+  Mask m(1035, 993, 218, 218, 0); // TIRF/13.jpg OK
+ // Mask m(1125, 696, 132, 132, 0); // TIRF/15.jpg OK
+ // Mask m(1696, 394, 178, 178, 0); // TIRF/17.jpg // NOK
+ //
+ //     TTimeReader tr = TTimeReader(origImage, parFilePath);
+ //     m.major_rad_ = reduct_x_pourcent(m.major_rad_, 20);
+ //     tr.GetHoursFromMask(m);
 
   return hourvector();
 }
