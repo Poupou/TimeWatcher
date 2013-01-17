@@ -185,7 +185,6 @@ TTimeReader::show_work_circle(int dist)
 void
 TTimeReader::find_clock_wise(int dist)
 {
-  std::cerr << "NEW FIND CLOCK" << std::endl;
   float r = r_ / dist;
 
   FMinuteAngle = -1;
@@ -287,8 +286,6 @@ TTimeReader::show_clock_wise(int dist) const
   unsigned int height = FColoredClock.size().height;
   cv::Mat coloredclock = FColoredClock.clone();
 
-  std::cerr << "FHourAngle="  << FHourAngle << std::endl;
-  std::cerr << "FMinuteAngle="  << FMinuteAngle << std::endl;
   cv::Point hourpoint(center_.x + cos(double(FHourAngle) * PI / 180.f) * r_ / (dist + 1),
 		      height - (center_.y + sin(double(FHourAngle) * PI / 180.f) * r_ / (dist + 1)));
   cv::Point minutepoint(center_.x + cos(double(FMinuteAngle) * PI / 180.f) * r_ / dist,
@@ -382,20 +379,29 @@ TTimeReader::find_clockwise_from_angle()
 
 
 std::pair<int, int>
-TTimeReader::GetHoursFromMask(Mask& parMask)
+TTimeReader::GetHoursFromMask(Mask& parMask, hourvector& hours)
 {
   init_work_image(parMask);
   isolate_clockwise();
   find_clockwise_from_angle();
 
   if (is_clock_)
+  {
     show_clock_wise(2);
 
-  // Compute time
-  int h = ((FHourAngle - 90) % 360) / 12;
-  int m = ((FMinuteAngle - 90) % 360) / 60;
+    double angle_h = 360 - FHourAngle + 90;
+    double angle_m = 360 - FMinuteAngle + 90;
 
-  return std::pair<int, int>(h, m);
+    std::cout << "hour angle:" << angle_h << ", "
+              << "minute angle:" << angle_m << std::endl;
+
+    int h = angle_h / (360.0 / 12.0);
+    int m = angle_m / (360.0 / 60.0);
+
+    hours.push_back(std::pair<int, int>(h, m));
+  }
+
+  return std::pair<int, int>(-1, -1);
 }
 
 void
@@ -464,10 +470,10 @@ unsigned int reduct_x_pourcent(int a, int pourcent)
 }
 
 hourvector readclock(std::vector<Mask> masks,
-		     std::string& parFilePath)
+                     std::string& parFilePath,
+                     hourvector& result)
 {
   cv::Mat origImage = cv::imread(parFilePath, CV_LOAD_IMAGE_COLOR);
-  hourvector r;
   auto it = masks.begin();
   auto end = masks.end();
 
@@ -478,10 +484,10 @@ hourvector readclock(std::vector<Mask> masks,
     {
       TTimeReader tr = TTimeReader(origImage, parFilePath);
       it->major_rad_ = reduct_x_pourcent(it->major_rad_, 20);
-      r.push_back(tr.GetHoursFromMask(*it));
+      tr.GetHoursFromMask(*it, result);
     }
     ++it;
   }
 
-  return r;
+  return hourvector();
 }

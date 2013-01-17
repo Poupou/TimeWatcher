@@ -40,7 +40,8 @@ int main(int argc, char** argv)
 
     std::cerr << "Reading..." << std::endl;
 
-    hourvector hours = readclock(masks, filename);
+    hourvector hours;
+    readclock(masks, filename, hours);
 
     {
       hourvector::iterator end = hours.end();
@@ -54,13 +55,14 @@ int main(int argc, char** argv)
   {
     std::vector<Mask> masks = clock_detect(filename);
 
-    hourvector hours = readclock(masks, filename);
+    hourvector hours;
+    readclock(masks, filename, hours);
 
     hourvector::iterator end = hours.end();
     hourvector::iterator it = hours.begin();
 
     for (; it != end; ++it)
-      std::cout << *it << std::endl;
+      std::cout << (*it).first << ":" << (*it).second << std::endl;
   }
   else
   {

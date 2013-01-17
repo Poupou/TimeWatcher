@@ -9,7 +9,9 @@
 typedef std::vector<std::pair<int, int> > hourvector;
 
 std::ostream& operator<< (std::ostream& ostr, std::pair<int, int>& hour);
-hourvector readclock(std::vector<Mask> parMasks, std::string& parFilePath);
+hourvector readclock(std::vector<Mask> parMasks,
+                     std::string& parFilePath,
+                     hourvector& result);
 
 class TTimeReader
 {
@@ -20,7 +22,7 @@ class TTimeReader
   public:
     cv::Mat GetSubImg(int parOriginX, int parOriginY,
 		       int parWidth, int parHeight);
-    std::pair<int, int> GetHoursFromMask(Mask& parMask);
+    std::pair<int, int> GetHoursFromMask(Mask& parMask, hourvector& hours);
 
   private:
     //double mean(cv::Mat& img, int row, int col, int border_size);
