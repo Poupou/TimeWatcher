@@ -420,8 +420,11 @@ TTimeReader::GetHoursFromMask(Mask& parMask)
   if (is_clock_)
     show_clock_wise(2);
 
-  return std::pair<int, int>(0,0);
+  // Compute time
+  int h = ((FHourAngle - 90) % 360) / 12;
+  int m = ((FMinuteAngle - 90) % 360) / 60;
 
+  return std::pair<int, int>(h, m);
 }
 
 void
@@ -510,6 +513,7 @@ hourvector readclock(std::vector<Mask> masks,
 		     std::string& parFilePath)
 {
   cv::Mat origImage = cv::imread(parFilePath, CV_LOAD_IMAGE_COLOR);
+  hourvector r;
   auto it = masks.begin();
   auto end = masks.end();
 
@@ -520,11 +524,10 @@ hourvector readclock(std::vector<Mask> masks,
     {
       TTimeReader tr = TTimeReader(origImage, parFilePath);
       it->major_rad_ = reduct_x_pourcent(it->major_rad_, 20);
-      tr.GetHoursFromMask(*it);
+      r.push_back(tr.GetHoursFromMask(*it));
     }
     ++it;
   }
-
 
 //  Mask m(1420, 1408, 480, 484, 0); // bigben-1 NOK
 // Mask m(198, 132, 96, 96, 0); // basic-1 OK
@@ -534,7 +537,7 @@ hourvector readclock(std::vector<Mask> masks,
  // Mask m(1216, 978, 231, 231, 0); // TIRF/6.jpg processed OK
 //  Mask m(1209, 960, 210, 210, 0); // TIRF/6.jpg OK
 
-  Mask m(1035, 993, 218, 218, 0); // TIRF/13.jpg OK
+ // Mask m(1035, 993, 218, 218, 0); // TIRF/13.jpg OK
  // Mask m(1125, 696, 132, 132, 0); // TIRF/15.jpg OK
  // Mask m(1696, 394, 178, 178, 0); // TIRF/17.jpg // NOK
  //
@@ -542,5 +545,5 @@ hourvector readclock(std::vector<Mask> masks,
  //     m.major_rad_ = reduct_x_pourcent(m.major_rad_, 20);
  //     tr.GetHoursFromMask(m);
 
-  return hourvector();
+  return r;
 }
