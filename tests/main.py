@@ -36,7 +36,9 @@ def gen_read(data):
 
 
 def call_bin(mode, filename, mask=None):
-    filename = "images/" + filename + ".jpg"
+    filename = "base/" + filename
+    print "Running:", filename
+
     cmd = [PATH_BIN, mode, filename]
     stdin = sp.PIPE if mask is not None else None
 
@@ -46,7 +48,10 @@ def call_bin(mode, filename, mask=None):
         p = sp.Popen(cmd, stdout=sp.PIPE, stdin=stdin)
         out = p.communicate(input=mask)[0][:-1]
         return (p.returncode, out)
-    return (0, "12:05")
+    else:
+        p = sp.Popen(cmd, stdout=sp.PIPE, stdin=stdin)
+        out = p.communicate()[0]
+        return (p.returncode, out)
 
 def test_detect(data):
     """
@@ -135,17 +140,17 @@ def test_read(data):
 
 def test_full(data):
     results = {"test": 0, "ok": 0}
-    for (filename, (mask, hour)) in gen_read(data).items():
-        (ret, out) = call_bin("full", filename, mask)
+    for (filename, hours) in data["read"].items():
+        (ret, out) = call_bin("full", filename, None)
 
         results["test"] += 1
 
         print "OUT:"
         print out
         print "SHOULD:"
-        print hour
+        print hours
 
-        if out == hour:
+        if out == hours:
             results["ok"] += 1
     return results
 
@@ -156,10 +161,10 @@ def main(args):
     print "Finally:", r["ok"], "/", r["test"]
     print
 
-    print "Read:"
-    r = test_read(data.DATA)
-    print r["ok"], "/", r["test"]
-    print
+    # print "Read:"
+    # r = test_read(data.DATA)
+    # print r["ok"], "/", r["test"]
+    # print
 
     print "Full:"
     r = test_full(data.DATA)
