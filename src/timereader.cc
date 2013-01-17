@@ -483,21 +483,5 @@ hourvector readclock(std::vector<Mask> masks,
     ++it;
   }
 
-//  Mask m(1420, 1408, 480, 484, 0); // bigben-1 NOK
-// Mask m(198, 132, 96, 96, 0); // basic-1 OK
-
- //Mask m(474, 484, 400, 400, 0); // basic-2 OK
- //Mask m(1674, 1150, 326, 326, 0); // TIRF/5.jpg OK
- // Mask m(1216, 978, 231, 231, 0); // TIRF/6.jpg processed OK
-//  Mask m(1209, 960, 210, 210, 0); // TIRF/6.jpg OK
-
- // Mask m(1035, 993, 218, 218, 0); // TIRF/13.jpg OK
- // Mask m(1125, 696, 132, 132, 0); // TIRF/15.jpg OK
- // Mask m(1696, 394, 178, 178, 0); // TIRF/17.jpg // NOK
- //
- //     TTimeReader tr = TTimeReader(origImage, parFilePath);
- //     m.major_rad_ = reduct_x_pourcent(m.major_rad_, 20);
- //     tr.GetHoursFromMask(m);
-
   return r;
 }
